@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Garantía técnica: la página no puede hacer ninguna conexión de red mientras se juega. -->
+  <meta http-equiv="Content-Security-Policy" content="connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <meta name="theme-color" content="#0e2a50">
+  <meta name="description" content="Geografía en Juego: País Infiltrado y Geografía en Cadena. Dos juegos de geografía para jugar desde el celular.">
+  <title>Geografía en Juego</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<noscript>
+  <p class="noscript">Para jugar necesitás activar JavaScript en tu navegador.</p>
+</noscript>
+
+<!-- Íconos de la interfaz (se reutilizan con <use>). Las únicas imágenes emoji del juego son las banderas. -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11.5L12 4l9 7.5"/><path d="M5.5 10v10h4.5v-6h4v6h4.5V10"/></symbol>
+  <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></symbol>
+  <symbol id="i-volume-off" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M16 9.5l5 5"/><path d="M21 9.5l-5 5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="11" width="15" height="9.5" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.5 12.5l5 5L19.5 7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7.5 4h9v5.5a4.5 4.5 0 0 1-9 0V4z"/><path d="M7.5 6H4.5v1.5A3 3 0 0 0 7.5 10.5"/><path d="M16.5 6h3v1.5a3 3 0 0 1-3 3"/><path d="M12 14v4"/><path d="M8.5 20.5h7"/></symbol>
+  <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="15" r="5.5"/><path d="M8.2 10.4L6 3.5h4l2 4.5 2-4.5h4l-2.2 6.9"/><path d="M11 13.6l1.2-.9v4.6"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18.5h6"/><path d="M10 21.5h4"/><path d="M12 2.5a6.5 6.5 0 0 0-3.6 11.9c.7.5 1.1 1.2 1.1 2.1h5c0-.9.4-1.6 1.1-2.1A6.5 6.5 0 0 0 12 2.5z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 6.5V12l3.5 2.2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-3.5"/><path d="M4.5 3.5v4h4"/><path d="M4 13a8 8 0 0 0 14.5 3.5"/><path d="M19.5 20.5v-4h-4"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-alive" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.2" fill="currentColor"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.7 8.7l6.6 6.6"/><path d="M15.3 8.7l-6.6 6.6"/></symbol>
+</svg>
+
+<div class="app">
+
+  <header class="topbar">
+    <button id="btn-home" class="pill-btn" type="button" hidden>
+      <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-home"/></svg>
+      <span>Inicio</span>
+    </button>
+    <button id="btn-sound" class="pill-btn pill-btn--right" type="button" aria-pressed="true">
+      <svg class="icon" aria-hidden="true" focusable="false"><use id="sound-use" href="#i-volume"/></svg>
+      <span id="sound-label">Sonido: ON</span>
+    </button>
+  </header>
+
+  <main>
+
+    <!-- ============ INICIO ============ -->
+    <section id="screen-home" class="screen" aria-labelledby="home-title">
+      <div class="hero">
+        <svg class="globe" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+          <defs>
+            <clipPath id="globe-clip"><circle cx="100" cy="100" r="92"/></clipPath>
+          </defs>
+          <circle class="globe-sea" cx="100" cy="100" r="92"/>
+          <g clip-path="url(#globe-clip)" class="globe-lines">
+            <line x1="0" y1="40" x2="200" y2="40"/>
+            <line x1="0" y1="70" x2="200" y2="70"/>
+            <line class="globe-equator" x1="0" y1="100" x2="200" y2="100"/>
+            <line x1="0" y1="130" x2="200" y2="130"/>
+            <line x1="0" y1="160" x2="200" y2="160"/>
+            <ellipse class="mer mer-1" cx="100" cy="100" rx="92" ry="92"/>
+            <ellipse class="mer mer-2" cx="100" cy="100" rx="92" ry="92"/>
+            <ellipse class="mer mer-3" cx="100" cy="100" rx="92" ry="92"/>
+            <ellipse class="mer mer-4" cx="100" cy="100" rx="92" ry="92"/>
+            <line class="globe-axis" x1="100" y1="0" x2="100" y2="200"/>
+          </g>
+          <circle class="globe-rim" cx="100" cy="100" r="92"/>
+        </svg>
+        <h1 id="home-title"><span>GEOGRAFÍA</span> <span>EN JUEGO</span></h1>
+        <p class="lead">Elegí un juego para comenzar</p>
+      </div>
+
+      <div class="menu">
+        <button id="go-inf" class="big-btn big-btn--beige" type="button">
+          <span class="big-btn__icon"><svg class="icon icon--lg" aria-hidden="true" focusable="false"><use href="#i-search"/></svg></span>
+          <span class="big-btn__text"><strong>PAÍS INFILTRADO</strong><small>Encontrá al país que no encaja</small></span>
+        </button>
+        <button id="go-chain" class="big-btn big-btn--sky" type="button">
+          <span class="big-btn__icon"><svg class="icon icon--lg" aria-hidden="true" focusable="false"><use href="#i-link"/></svg></span>
+          <span class="big-btn__text"><strong>GEOGRAFÍA EN CADENA</strong><small>De 2 a 8 jugadores, 5 segundos por turno</small></span>
+        </button>
+      </div>
+
+      <button id="go-rules" class="text-btn" type="button">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-info"/></svg>
+        <span>Reglas</span>
+      </button>
+      <p class="privacy">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-lock"/></svg>
+        <span>Tu partida es solo tuya. No se guarda ni se envía nada.</span>
+      </p>
+    </section>
+
+    <!-- ============ REGLAS ============ -->
+    <section id="screen-rules" class="screen" hidden aria-labelledby="rules-title">
+      <h2 id="rules-title" class="screen-title" tabindex="-1">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-info"/></svg>
+        <span>Reglas</span>
+      </h2>
+
+      <article class="card prose">
+        <h3><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-search"/></svg><span>País Infiltrado</span></h3>
+        <p>Se muestran 5 países. Cuatro tienen algo en común y uno es el infiltrado.</p>
+        <ol>
+          <li>Tocá el país que creés que no pertenece al grupo.</li>
+          <li>Confirmá tu respuesta.</li>
+          <li>Mirá la respuesta y la explicación.</li>
+        </ol>
+        <p>Son 10 desafíos, en orden aleatorio. No se repiten dentro de una misma partida.</p>
+      </article>
+
+      <article class="card prose">
+        <h3><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg><span>Geografía en Cadena</span></h3>
+        <p>De 2 a 8 jugadores. Gana quien arma la cadena de países más larga sin equivocarse y queda en pie al final.</p>
+        <ol>
+          <li>El primer jugador dice cualquier país.</li>
+          <li>El siguiente dice un país que empiece con la última letra del anterior.</li>
+          <li>No se puede repetir un país.</li>
+          <li>Cada jugador tiene 5 segundos para responder.</li>
+          <li>Queda eliminado quien no responde a tiempo, repite un país, dice un lugar que no es un país o dice uno con otra letra.</li>
+          <li>La partida sigue hasta que queda un solo jugador: ese es el ganador.</li>
+        </ol>
+        <p>Valen los 193 países de la ONU más Palestina y el Vaticano. Las tildes y las mayúsculas no importan. Si ya no queda ningún país con la letra pedida, el siguiente jugador puede decir cualquiera.</p>
+      </article>
+
+      <button id="rules-back" class="big-btn big-btn--beige big-btn--center" type="button">VOLVER</button>
+    </section>
+
+    <!-- ============ PAÍS INFILTRADO ============ -->
+    <section id="screen-inf" class="screen" hidden aria-labelledby="inf-title">
+      <div class="game-head">
+        <h2 id="inf-title" class="screen-title" tabindex="-1">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-search"/></svg>
+          <span>PAÍS INFILTRADO</span>
+        </h2>
+        <div class="chips">
+          <span id="inf-progress" class="chip">Desafío 1</span>
+          <span class="chip chip--ok" aria-label="Aciertos">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-check"/></svg>
+            <span id="inf-score">0</span>
+          </span>
+        </div>
+      </div>
+
+      <p class="prompt">Cuatro países tienen algo en común. Uno es el infiltrado. ¿Cuál?</p>
+
+      <div class="card">
+        <h3 class="question">¿CUÁL ES EL PAÍS INFILTRADO?</h3>
+        <div id="inf-options" class="options" role="group" aria-label="Elegí un país"></div>
+      </div>
+
+      <div id="inf-confirm" class="card card--confirm" hidden>
+        <p class="confirm-text"><strong>¿Estás seguro?</strong> <span id="inf-chosen"></span></p>
+        <button id="inf-confirm-btn" class="big-btn big-btn--blue big-btn--center" type="button">CONFIRMAR</button>
+      </div>
+
+      <div id="inf-result" class="card result" hidden aria-live="polite">
+        <h3 id="inf-result-title" class="result-title">
+          <svg class="icon icon--lg" aria-hidden="true" focusable="false"><use id="inf-result-use" href="#i-check"/></svg>
+          <span id="inf-result-title-text"></span>
+        </h3>
+        <div class="result-answer">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg>
+          <div class="result-answer__text">
+            <p id="inf-result-answer" class="result-answer__main"></p>
+            <p id="inf-result-pick" class="result-pick" hidden></p>
+          </div>
+        </div>
+        <p class="result-why">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bulb"/></svg>
+          <span><strong>Explicación:</strong> <span id="inf-result-why"></span></span>
+        </p>
+        <button id="inf-next" class="big-btn big-btn--beige big-btn--center" type="button">SIGUIENTE DESAFÍO</button>
+      </div>
+    </section>
+
+    <section id="screen-inf-end" class="screen" hidden aria-labelledby="inf-end-title">
+      <div class="card end-card">
+        <svg class="icon icon--xl end-icon" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg>
+        <h2 id="inf-end-title" class="end-title" tabindex="-1">¡Completaste todos los desafíos!</h2>
+        <p id="inf-end-score" class="end-sub"></p>
+      </div>
+      <button id="inf-again" class="big-btn big-btn--beige big-btn--center" type="button">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-refresh"/></svg><span>JUGAR DE NUEVO</span>
+      </button>
+      <button id="inf-end-home" class="big-btn big-btn--sky big-btn--center" type="button">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>VOLVER AL INICIO</span>
+      </button>
+    </section>
+
+    <!-- ============ GEOGRAFÍA EN CADENA: CONFIGURACIÓN ============ -->
+    <section id="screen-chain-setup" class="screen" hidden aria-labelledby="chain-setup-title">
+      <h2 id="chain-setup-title" class="screen-title" tabindex="-1">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>
+        <span>GEOGRAFÍA EN CADENA</span>
+      </h2>
+
+      <div class="card">
+        <h3 class="question">¿Cuántos jugadores?</h3>
+        <div id="count-buttons" class="count-grid" role="group" aria-label="Cantidad de jugadores">
+          <button class="count-btn" type="button" data-count="2" aria-pressed="false">2</button>
+          <button class="count-btn" type="button" data-count="3" aria-pressed="false">3</button>
+          <button class="count-btn" type="button" data-count="4" aria-pressed="false">4</button>
+          <button class="count-btn" type="button" data-count="5" aria-pressed="false">5</button>
+          <button class="count-btn" type="button" data-count="6" aria-pressed="false">6</button>
+          <button class="count-btn" type="button" data-count="7" aria-pressed="false">7</button>
+          <button class="count-btn" type="button" data-count="8" aria-pressed="false">8</button>
+        </div>
+      </div>
+
+      <form id="names-form" class="card" hidden novalidate autocomplete="off">
+        <h3 class="question">Ingresá los nombres de los jugadores</h3>
+        <div id="names-list" class="names-list"></div>
+        <p id="names-error" class="form-error" role="alert" hidden></p>
+        <button id="start-btn" class="big-btn big-btn--blue big-btn--center" type="submit">COMENZAR PARTIDA</button>
+      </form>
+    </section>
+
+    <!-- ============ GEOGRAFÍA EN CADENA: PARTIDA ============ -->
+    <section id="screen-chain" class="screen" hidden aria-labelledby="chain-title">
+      <h2 id="chain-title" class="screen-title" tabindex="-1">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>
+        <span>GEOGRAFÍA EN CADENA</span>
+      </h2>
+
+      <div id="turn-card" class="card turn-card">
+        <p class="turn-label">Turno de:</p>
+        <p class="turn-name">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>
+          <strong id="turn-name"></strong>
+        </p>
+        <p id="turn-prompt" class="turn-prompt">Decí un país que empiece con:</p>
+
+        <div class="turn-row">
+          <div id="turn-letter" class="letter" aria-live="polite">A</div>
+          <div id="timer-ring" class="ring" role="timer" aria-label="Tiempo restante">
+            <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+              <circle class="ring-bg" cx="60" cy="60" r="52"/>
+              <circle class="ring-fg" cx="60" cy="60" r="52"/>
+            </svg>
+            <span id="timer-num" class="ring-num">5</span>
+          </div>
+        </div>
+
+        <form id="answer-form" class="answer-form" novalidate autocomplete="off">
+          <input id="answer-input" class="answer-input" type="text" name="pais" placeholder="Escribí un país..."
+                 maxlength="40" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false"
+                 enterkeyhint="done" aria-label="Escribí un país">
+          <p id="hint" class="hint" role="status" hidden></p>
+          <button id="answer-btn" class="big-btn big-btn--blue big-btn--center" type="submit">CONFIRMAR</button>
+        </form>
+
+        <div id="feedback" class="feedback" role="status" aria-live="assertive" hidden>
+          <svg id="fb-icon" class="icon icon--xl" aria-hidden="true" focusable="false"><use id="fb-icon-use" href="#i-check"/></svg>
+          <p id="fb-title" class="fb-title"></p>
+          <p id="fb-detail" class="fb-detail"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">JUGADORES</h3>
+        <ul id="players-list" class="players"></ul>
+      </div>
+
+      <div class="card">
+        <h3 class="card-title">
+          <span class="card-title__main"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg><span>CADENA</span></span>
+          <span id="chain-count" class="chip chip--soft"></span>
+        </h3>
+        <div id="chain-list" class="chain" tabindex="0" aria-label="Países de la cadena"></div>
+      </div>
+    </section>
+
+    <!-- ============ GEOGRAFÍA EN CADENA: GANADOR ============ -->
+    <section id="screen-chain-end" class="screen" hidden aria-labelledby="winner-title">
+      <div class="card end-card end-card--win">
+        <svg class="icon icon--xl end-icon end-icon--bounce" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg>
+        <h2 id="winner-title" class="end-title" tabindex="-1">¡TENEMOS GANADOR!</h2>
+        <p class="winner">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-medal"/></svg>
+          <strong id="winner-name"></strong>
+        </p>
+        <p class="end-sub">“¡Ganaste Geografía en Cadena!”</p>
+        <p id="winner-chain" class="end-sub end-sub--soft"></p>
+      </div>
+      <button id="chain-again" class="big-btn big-btn--beige big-btn--center" type="button">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-refresh"/></svg><span>JUGAR DE NUEVO</span>
+      </button>
+      <button id="chain-end-home" class="big-btn big-btn--sky big-btn--center" type="button">
+        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-home"/></svg><span>VOLVER AL INICIO</span>
+      </button>
+    </section>
+
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -31,12 +31,10 @@
   <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7.5 4h9v5.5a4.5 4.5 0 0 1-9 0V4z"/><path d="M7.5 6H4.5v1.5A3 3 0 0 0 7.5 10.5"/><path d="M16.5 6h3v1.5a3 3 0 0 1-3 3"/><path d="M12 14v4"/><path d="M8.5 20.5h7"/></symbol>
   <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="15" r="5.5"/><path d="M8.2 10.4L6 3.5h4l2 4.5 2-4.5h4l-2.2 6.9"/><path d="M11 13.6l1.2-.9v4.6"/></symbol>
   <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18.5h6"/><path d="M10 21.5h4"/><path d="M12 2.5a6.5 6.5 0 0 0-3.6 11.9c.7.5 1.1 1.2 1.1 2.1h5c0-.9.4-1.6 1.1-2.1A6.5 6.5 0 0 0 12 2.5z"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 6.5V12l3.5 2.2"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-3.5"/><path d="M4.5 3.5v4h4"/><path d="M4 13a8 8 0 0 0 14.5 3.5"/><path d="M19.5 20.5v-4h-4"/></symbol>
   <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
-  <symbol id="i-alive" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.2" fill="currentColor"/></symbol>
-  <symbol id="i-out" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.7 8.7l6.6 6.6"/><path d="M15.3 8.7l-6.6 6.6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></symbol>
 </svg>
 
 <div class="app">
@@ -87,7 +85,7 @@
         </button>
         <button id="go-chain" class="big-btn big-btn--sky" type="button">
           <span class="big-btn__icon"><svg class="icon icon--lg" aria-hidden="true" focusable="false"><use href="#i-link"/></svg></span>
-          <span class="big-btn__text"><strong>GEOGRAFÍA EN CADENA</strong><small>De 2 a 8 jugadores, 5 segundos por turno</small></span>
+          <span class="big-btn__text"><strong>GEOGRAFÍA EN CADENA</strong><small>Uní dos países por sus fronteras. 2 jugadores</small></span>
         </button>
       </div>
 
@@ -116,21 +114,21 @@
           <li>Confirmá tu respuesta.</li>
           <li>Mirá la respuesta y la explicación.</li>
         </ol>
-        <p>Son 10 desafíos, en orden aleatorio. No se repiten dentro de una misma partida.</p>
+        <p>Son 10 desafíos, siempre en el mismo orden: del 1 al 10.</p>
       </article>
 
       <article class="card prose">
         <h3><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg><span>Geografía en Cadena</span></h3>
-        <p>De 2 a 8 jugadores. Gana quien arma la cadena de países más larga sin equivocarse y queda en pie al final.</p>
+        <p>Dos jugadores, por turnos. En cada desafío hay que unir dos países pasando por países que se toquen entre sí.</p>
         <ol>
-          <li>El primer jugador dice cualquier país.</li>
-          <li>El siguiente dice un país que empiece con la última letra del anterior.</li>
-          <li>No se puede repetir un país.</li>
-          <li>Cada jugador tiene 5 segundos para responder.</li>
-          <li>Queda eliminado quien no responde a tiempo, repite un país, dice un lugar que no es un país o dice uno con otra letra.</li>
-          <li>La partida sigue hasta que queda un solo jugador: ese es el ganador.</li>
+          <li>Se muestran dos países: uno de arranque y uno de llegada.</li>
+          <li>El jugador del turno toca países de la lista para ponerlos en el medio.</li>
+          <li>Cada país tiene que compartir frontera con el que va antes y con el que va después.</li>
+          <li>La cadena entera no puede tener más de 5 países, contando los dos de las puntas.</li>
+          <li>No hay reloj: pueden tomarse el tiempo que quieran.</li>
+          <li>Cuando está lista, se toca CONFIRMAR. Si está bien, suma un punto.</li>
         </ol>
-        <p>Valen los 193 países de la ONU más Palestina y el Vaticano. Las tildes y las mayúsculas no importan. Si ya no queda ningún país con la letra pedida, el siguiente jugador puede decir cualquiera.</p>
+        <p>Son 10 desafíos, siempre en el mismo orden: del 1 al 10. Se turnan, así que cada jugador resuelve 5. Gana quien acierta más. Casi siempre hay más de una cadena correcta: cualquiera que cumpla las reglas vale.</p>
       </article>
 
       <button id="rules-back" class="big-btn big-btn--beige big-btn--center" type="button">VOLVER</button>
@@ -205,93 +203,97 @@
         <span>GEOGRAFÍA EN CADENA</span>
       </h2>
 
-      <div class="card">
-        <h3 class="question">¿Cuántos jugadores?</h3>
-        <div id="count-buttons" class="count-grid" role="group" aria-label="Cantidad de jugadores">
-          <button class="count-btn" type="button" data-count="2" aria-pressed="false">2</button>
-          <button class="count-btn" type="button" data-count="3" aria-pressed="false">3</button>
-          <button class="count-btn" type="button" data-count="4" aria-pressed="false">4</button>
-          <button class="count-btn" type="button" data-count="5" aria-pressed="false">5</button>
-          <button class="count-btn" type="button" data-count="6" aria-pressed="false">6</button>
-          <button class="count-btn" type="button" data-count="7" aria-pressed="false">7</button>
-          <button class="count-btn" type="button" data-count="8" aria-pressed="false">8</button>
-        </div>
-      </div>
+      <article class="card prose">
+        <p>Dos jugadores, por turnos. Hay que unir dos países pasando por países que se toquen entre sí, sin pasarte de 5 países en total.</p>
+        <p>No hay reloj: tómense el tiempo que quieran.</p>
+      </article>
 
-      <form id="names-form" class="card" hidden novalidate autocomplete="off">
-        <h3 class="question">Ingresá los nombres de los jugadores</h3>
+      <form id="names-form" class="card" novalidate autocomplete="off">
+        <h3 class="form-title">Ingresá los nombres de los jugadores</h3>
         <div id="names-list" class="names-list"></div>
         <p id="names-error" class="form-error" role="alert" hidden></p>
         <button id="start-btn" class="big-btn big-btn--blue big-btn--center" type="submit">COMENZAR PARTIDA</button>
       </form>
     </section>
 
-    <!-- ============ GEOGRAFÍA EN CADENA: PARTIDA ============ -->
+    <!-- ============ GEOGRAFÍA EN CADENA: JUEGO ============ -->
     <section id="screen-chain" class="screen" hidden aria-labelledby="chain-title">
-      <h2 id="chain-title" class="screen-title" tabindex="-1">
-        <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>
-        <span>GEOGRAFÍA EN CADENA</span>
-      </h2>
+      <div class="game-head">
+        <h2 id="chain-title" class="screen-title" tabindex="-1">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>
+          <span>GEOGRAFÍA EN CADENA</span>
+        </h2>
+        <div class="chips">
+          <span id="chain-progress" class="chip">Desafío 1 de 10</span>
+          <span id="score-1" class="chip chip--score"></span>
+          <span id="score-2" class="chip chip--score"></span>
+        </div>
+      </div>
 
-      <div id="turn-card" class="card turn-card">
-        <p class="turn-label">Turno de:</p>
-        <p class="turn-name">
+      <div class="card turn-card">
+        <p class="turn-of">Turno de:</p>
+        <p class="turn-player">
           <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-user"/></svg>
           <strong id="turn-name"></strong>
         </p>
-        <p id="turn-prompt" class="turn-prompt">Decí un país que empiece con:</p>
-
-        <div class="turn-row">
-          <div id="turn-letter" class="letter" aria-live="polite">A</div>
-          <div id="timer-ring" class="ring" role="timer" aria-label="Tiempo restante">
-            <svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">
-              <circle class="ring-bg" cx="60" cy="60" r="52"/>
-              <circle class="ring-fg" cx="60" cy="60" r="52"/>
-            </svg>
-            <span id="timer-num" class="ring-num">5</span>
-          </div>
-        </div>
-
-        <form id="answer-form" class="answer-form" novalidate autocomplete="off">
-          <input id="answer-input" class="answer-input" type="text" name="pais" placeholder="Escribí un país..."
-                 maxlength="40" autocomplete="off" autocapitalize="words" autocorrect="off" spellcheck="false"
-                 enterkeyhint="done" aria-label="Escribí un país">
-          <p id="hint" class="hint" role="status" hidden></p>
-          <button id="answer-btn" class="big-btn big-btn--blue big-btn--center" type="submit">CONFIRMAR</button>
-        </form>
-
-        <div id="feedback" class="feedback" role="status" aria-live="assertive" hidden>
-          <svg id="fb-icon" class="icon icon--xl" aria-hidden="true" focusable="false"><use id="fb-icon-use" href="#i-check"/></svg>
-          <p id="fb-title" class="fb-title"></p>
-          <p id="fb-detail" class="fb-detail"></p>
+        <p class="turn-prompt">Uní estos dos países:</p>
+        <div class="link-ends">
+          <span class="link-end">
+            <span id="link-from-flag" class="link-flag" aria-hidden="true"></span>
+            <span id="link-from" class="link-name"></span>
+          </span>
+          <svg class="icon icon--lg link-arrow" aria-hidden="true" focusable="false"><use href="#i-arrow"/></svg>
+          <span class="link-end">
+            <span id="link-to-flag" class="link-flag" aria-hidden="true"></span>
+            <span id="link-to" class="link-name"></span>
+          </span>
         </div>
       </div>
 
       <div class="card">
-        <h3 class="card-title">JUGADORES</h3>
-        <ul id="players-list" class="players"></ul>
-      </div>
-
-      <div class="card">
-        <h3 class="card-title">
-          <span class="card-title__main"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg><span>CADENA</span></span>
-          <span id="chain-count" class="chip chip--soft"></span>
+        <h3 class="section-title">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>
+          <span>TU CADENA</span>
         </h3>
-        <div id="chain-list" class="chain" tabindex="0" aria-label="Países de la cadena"></div>
+        <div id="chain-build" class="build" aria-live="polite"></div>
+        <p id="chain-hint" class="build-hint"></p>
+        <button id="chain-confirm-btn" class="big-btn big-btn--blue big-btn--center" type="button">CONFIRMAR</button>
+      </div>
+
+      <div class="card">
+        <h3 class="section-title"><span>PAÍSES PARA USAR</span></h3>
+        <div id="chain-options" class="pick-grid" role="group" aria-label="Países para agregar a la cadena"></div>
+      </div>
+
+      <div id="chain-result" class="card result" hidden aria-live="polite">
+        <h3 class="result-title">
+          <svg class="icon icon--lg" aria-hidden="true" focusable="false"><use id="chain-result-use" href="#i-check"/></svg>
+          <span id="chain-result-title-text"></span>
+        </h3>
+        <p class="result-answer">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-link"/></svg>
+          <span class="result-answer__text"><span id="chain-result-chain" class="result-answer__main"></span></span>
+        </p>
+        <p id="chain-result-why" class="result-pick" hidden></p>
+        <p id="chain-result-solution" class="result-why" hidden>
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-bulb"/></svg>
+          <span><strong>Una solución:</strong> <span id="chain-result-solution-text"></span></span>
+        </p>
+        <button id="chain-next" class="big-btn big-btn--beige big-btn--center" type="button">SIGUIENTE DESAFÍO</button>
       </div>
     </section>
 
-    <!-- ============ GEOGRAFÍA EN CADENA: GANADOR ============ -->
+    <!-- ============ GEOGRAFÍA EN CADENA: FINAL ============ -->
     <section id="screen-chain-end" class="screen" hidden aria-labelledby="winner-title">
       <div class="card end-card end-card--win">
         <svg class="icon icon--xl end-icon end-icon--bounce" aria-hidden="true" focusable="false"><use href="#i-trophy"/></svg>
         <h2 id="winner-title" class="end-title" tabindex="-1">¡TENEMOS GANADOR!</h2>
-        <p class="winner">
+        <p id="winner-row" class="winner">
           <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-medal"/></svg>
           <strong id="winner-name"></strong>
         </p>
-        <p class="end-sub">“¡Ganaste Geografía en Cadena!”</p>
-        <p id="winner-chain" class="end-sub end-sub--soft"></p>
+        <p id="winner-sub" class="end-sub"></p>
+        <p id="winner-scores" class="end-sub end-sub--soft"></p>
       </div>
       <button id="chain-again" class="big-btn big-btn--beige big-btn--center" type="button">
         <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-refresh"/></svg><span>JUGAR DE NUEVO</span>

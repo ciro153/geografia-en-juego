@@ -14,125 +14,178 @@
   'use strict';
 
   /* ---------- Ajustes ---------- */
-  const TURN_MS = 5000;              // tiempo por turno en Geografía en Cadena
-  const PAUSE_OK_MS = 1500;          // cartel de "¡CORRECTO!" entre turnos
-  const PAUSE_OUT_MS = 2600;         // cartel de eliminación entre turnos
-  const ELIMINATE_ON_INVALID = true; // true: un país inválido, repetido o con otra letra elimina.
-                                     // false: solo muestra el error y deja seguir hasta que se acabe el tiempo.
-  const MIN_PLAYERS = 2;
-  const MAX_PLAYERS = 8;
+  const MAX_CHAIN = 5;          // países por conexión, contando los dos de las puntas
+  const CHAIN_PLAYERS = 2;      // jugadores de Geografía en Cadena
   const MAX_NAME_LENGTH = 14;
 
+  const MAX_MIDDLE = MAX_CHAIN - 2;   // países que se pueden poner en el medio
+
   /* ==========================================================
-     DATOS: PAÍSES (193 de la ONU + Palestina + Vaticano)
-     [nombre, código ISO para la bandera, [otros nombres válidos]]
+     DATOS: PAÍSES
+     [nombre, código ISO de dos letras, que es lo que dibuja la bandera]
+     Están solo los países que usan los dos juegos. Si agregás un desafío con
+     un país nuevo, agregalo también acá (y, si es de Cadena, sus fronteras).
      ========================================================== */
   const COUNTRY_DATA = [
-    // Europa
-    ['Albania', 'AL'], ['Alemania', 'DE'], ['Andorra', 'AD'], ['Austria', 'AT'], ['Bélgica', 'BE'],
-    ['Bielorrusia', 'BY', ['Belarús']], ['Bosnia y Herzegovina', 'BA', ['Bosnia']], ['Bulgaria', 'BG'],
-    ['Croacia', 'HR'], ['Chipre', 'CY'], ['Chequia', 'CZ', ['República Checa']], ['Dinamarca', 'DK'],
-    ['Eslovaquia', 'SK'], ['Eslovenia', 'SI'], ['España', 'ES'], ['Estonia', 'EE'], ['Finlandia', 'FI'],
-    ['Francia', 'FR'], ['Grecia', 'GR'], ['Hungría', 'HU'], ['Irlanda', 'IE'], ['Islandia', 'IS'],
-    ['Italia', 'IT'], ['Letonia', 'LV'], ['Liechtenstein', 'LI'], ['Lituania', 'LT'], ['Luxemburgo', 'LU'],
-    ['Macedonia del Norte', 'MK', ['Macedonia']], ['Malta', 'MT'], ['Moldavia', 'MD', ['Moldova']],
-    ['Mónaco', 'MC'], ['Montenegro', 'ME'], ['Noruega', 'NO'], ['Países Bajos', 'NL', ['Holanda']],
-    ['Polonia', 'PL'], ['Portugal', 'PT'], ['Reino Unido', 'GB'], ['Rumania', 'RO'], ['Rusia', 'RU'],
-    ['San Marino', 'SM'], ['Serbia', 'RS'], ['Suecia', 'SE'], ['Suiza', 'CH'], ['Ucrania', 'UA'],
-    ['Vaticano', 'VA', ['Ciudad del Vaticano']],
-
-    // África
-    ['Argelia', 'DZ'], ['Angola', 'AO'], ['Benín', 'BJ'], ['Botsuana', 'BW', ['Botswana']],
-    ['Burkina Faso', 'BF'], ['Burundi', 'BI'], ['Cabo Verde', 'CV'], ['Camerún', 'CM'], ['Chad', 'TD'],
-    ['Comoras', 'KM'], ['República del Congo', 'CG', ['Congo']], ['República Democrática del Congo', 'CD'],
-    ['Costa de Marfil', 'CI'], ['Egipto', 'EG'], ['Eritrea', 'ER'], ['Esuatini', 'SZ', ['Suazilandia']],
-    ['Etiopía', 'ET'], ['Gabón', 'GA'], ['Gambia', 'GM'], ['Ghana', 'GH'], ['Guinea', 'GN'],
-    ['Guinea-Bisáu', 'GW', ['Guinea-Bissau']], ['Guinea Ecuatorial', 'GQ'], ['Kenia', 'KE', ['Kenya']],
-    ['Lesoto', 'LS', ['Lesotho']], ['Liberia', 'LR'], ['Libia', 'LY'], ['Madagascar', 'MG'],
-    ['Malaui', 'MW', ['Malawi']], ['Malí', 'ML'], ['Marruecos', 'MA'], ['Mauricio', 'MU', ['Mauritius']],
-    ['Mauritania', 'MR'], ['Mozambique', 'MZ'], ['Namibia', 'NA'], ['Níger', 'NE'], ['Nigeria', 'NG'],
-    ['República Centroafricana', 'CF'], ['Ruanda', 'RW', ['Rwanda']], ['Santo Tomé y Príncipe', 'ST'],
-    ['Senegal', 'SN'], ['Seychelles', 'SC'], ['Sierra Leona', 'SL'], ['Somalia', 'SO'], ['Sudáfrica', 'ZA'],
-    ['Sudán', 'SD'], ['Sudán del Sur', 'SS'], ['Tanzania', 'TZ'], ['Togo', 'TG'], ['Túnez', 'TN'],
-    ['Uganda', 'UG'], ['Yibuti', 'DJ', ['Djibouti']], ['Zambia', 'ZM'], ['Zimbabue', 'ZW', ['Zimbabwe']],
-
-    // Asia
-    ['Afganistán', 'AF'], ['Arabia Saudita', 'SA', ['Arabia Saudí']], ['Armenia', 'AM'],
-    ['Azerbaiyán', 'AZ', ['Azerbaiján']], ['Baréin', 'BH', ['Bahréin']], ['Bangladés', 'BD', ['Bangladesh']],
-    ['Bután', 'BT'], ['Birmania', 'MM', ['Myanmar']], ['Brunéi', 'BN'], ['Camboya', 'KH'],
-    ['Catar', 'QA', ['Qatar']], ['China', 'CN'], ['Corea del Norte', 'KP'], ['Corea del Sur', 'KR'],
-    ['Emiratos Árabes Unidos', 'AE'], ['Filipinas', 'PH'], ['Georgia', 'GE'], ['India', 'IN'],
-    ['Indonesia', 'ID'], ['Irak', 'IQ'], ['Irán', 'IR'], ['Israel', 'IL'], ['Japón', 'JP'],
-    ['Jordania', 'JO'], ['Kazajistán', 'KZ', ['Kazajstán']], ['Kirguistán', 'KG', ['Kirguizistán']],
-    ['Kuwait', 'KW'], ['Laos', 'LA'], ['Líbano', 'LB'], ['Malasia', 'MY'], ['Maldivas', 'MV'],
-    ['Mongolia', 'MN'], ['Nepal', 'NP'], ['Omán', 'OM'], ['Pakistán', 'PK'], ['Palestina', 'PS'],
-    ['Singapur', 'SG'], ['Siria', 'SY'], ['Sri Lanka', 'LK'], ['Tailandia', 'TH'], ['Tayikistán', 'TJ'],
-    ['Timor Oriental', 'TL', ['Timor-Leste']], ['Turkmenistán', 'TM'], ['Turquía', 'TR'],
-    ['Uzbekistán', 'UZ'], ['Vietnam', 'VN'], ['Yemen', 'YE'],
-
-    // América
-    ['Antigua y Barbuda', 'AG'], ['Argentina', 'AR'], ['Bahamas', 'BS'], ['Barbados', 'BB'],
-    ['Belice', 'BZ'], ['Bolivia', 'BO'], ['Brasil', 'BR'], ['Canadá', 'CA'], ['Chile', 'CL'],
-    ['Colombia', 'CO'], ['Costa Rica', 'CR'], ['Cuba', 'CU'], ['Dominica', 'DM'], ['Ecuador', 'EC'],
-    ['El Salvador', 'SV'], ['Estados Unidos', 'US'], ['Granada', 'GD'], ['Guatemala', 'GT'],
-    ['Guyana', 'GY'], ['Haití', 'HT'], ['Honduras', 'HN'], ['Jamaica', 'JM'], ['México', 'MX', ['Méjico']],
-    ['Nicaragua', 'NI'], ['Panamá', 'PA'], ['Paraguay', 'PY'], ['Perú', 'PE'], ['República Dominicana', 'DO'],
-    ['San Cristóbal y Nieves', 'KN'], ['San Vicente y las Granadinas', 'VC'], ['Santa Lucía', 'LC'],
-    ['Surinam', 'SR', ['Suriname']], ['Trinidad y Tobago', 'TT'], ['Uruguay', 'UY'], ['Venezuela', 'VE'],
-
-    // Oceanía
-    ['Australia', 'AU'], ['Fiyi', 'FJ', ['Fiji']], ['Islas Marshall', 'MH'], ['Islas Salomón', 'SB'],
-    ['Kiribati', 'KI'], ['Micronesia', 'FM'], ['Nauru', 'NR'], ['Nueva Zelanda', 'NZ'],
-    ['Palaos', 'PW', ['Palau']], ['Papúa Nueva Guinea', 'PG'], ['Samoa', 'WS'], ['Tonga', 'TO'],
-    ['Tuvalu', 'TV'], ['Vanuatu', 'VU']
+    ['Afganistán', 'AF'], ['Alemania', 'DE'], ['Arabia Saudita', 'SA'], ['Argelia', 'DZ'],
+    ['Argentina', 'AR'], ['Australia', 'AU'], ['Austria', 'AT'], ['Bangladés', 'BD'],
+    ['Bélgica', 'BE'], ['Belice', 'BZ'], ['Bolivia', 'BO'], ['Brasil', 'BR'],
+    ['Canadá', 'CA'], ['Chad', 'TD'], ['Chile', 'CL'], ['China', 'CN'],
+    ['Colombia', 'CO'], ['Corea del Sur', 'KR'], ['Costa Rica', 'CR'], ['Cuba', 'CU'],
+    ['Ecuador', 'EC'], ['Egipto', 'EG'], ['El Salvador', 'SV'], ['España', 'ES'],
+    ['Estados Unidos', 'US'], ['Etiopía', 'ET'], ['Fiyi', 'FJ'], ['Francia', 'FR'],
+    ['Grecia', 'GR'], ['Guatemala', 'GT'], ['Guyana', 'GY'], ['Honduras', 'HN'],
+    ['India', 'IN'], ['Irak', 'IQ'], ['Irán', 'IR'], ['Italia', 'IT'],
+    ['Japón', 'JP'], ['Libia', 'LY'], ['Malí', 'ML'], ['Marruecos', 'MA'],
+    ['Mauritania', 'MR'], ['México', 'MX'], ['Nepal', 'NP'], ['Nicaragua', 'NI'],
+    ['Níger', 'NE'], ['Noruega', 'NO'], ['Nueva Zelanda', 'NZ'], ['Pakistán', 'PK'],
+    ['Panamá', 'PA'], ['Papúa Nueva Guinea', 'PG'], ['Paraguay', 'PY'], ['Perú', 'PE'],
+    ['Polonia', 'PL'], ['Portugal', 'PT'], ['Sudán', 'SD'], ['Suiza', 'CH'],
+    ['Tailandia', 'TH'], ['Túnez', 'TN'], ['Turquía', 'TR'], ['Uruguay', 'UY'],
+    ['Venezuela', 'VE']
   ];
 
   /* ==========================================================
-     DATOS: DESAFÍOS DE PAÍS INFILTRADO
-     Son exactamente los 10 ejemplos del PDF "pais_infiltrado_10_ejemplos".
-     others: los 4 países que comparten algo / intruder: el que no encaja
-     why: la explicación del PDF, que se muestra después de confirmar
+     JUEGO 1 — DESAFÍOS DE PAÍS INFILTRADO
+     Son exactamente los 10 ejemplos del PDF "pais_infiltrado_10_ejemplos", siempre en este
+     orden (ejemplo 1, 2, ... 10) y con los 5 países en el mismo orden que en cada tarjeta.
+     options:  los 5 países, tal cual figuran en la tarjeta
+     intruder: la respuesta (uno de los 5)
+     why:      la explicación del PDF, que se muestra después de confirmar
      ========================================================== */
   const CHALLENGES = [
-    { category: 'Países de América del Sur',
-      others: ['Argentina', 'Brasil', 'Chile', 'Perú'], intruder: 'Francia',
+    // Ejemplo 1
+    { options: ['Argentina', 'Brasil', 'Chile', 'Perú', 'Francia'], intruder: 'Francia',
       why: 'Los otros 4 países están en América del Sur.' },
-    { category: 'Idioma oficial: español',
-      others: ['España', 'México', 'Argentina', 'Colombia'], intruder: 'Japón',
+    // Ejemplo 2
+    { options: ['España', 'México', 'Argentina', 'Colombia', 'Japón'], intruder: 'Japón',
       why: 'Los otros 4 tienen el español como idioma oficial.' },
-    { category: 'Países de Europa',
-      others: ['Italia', 'Francia', 'Alemania', 'España'], intruder: 'China',
+    // Ejemplo 3
+    { options: ['Italia', 'Francia', 'Alemania', 'España', 'China'], intruder: 'China',
       why: 'Los otros 4 están en Europa.' },
-    { category: 'Países de América del Norte o el Caribe',
-      others: ['Canadá', 'Estados Unidos', 'México', 'Cuba'], intruder: 'Egipto',
+    // Ejemplo 4
+    { options: ['Canadá', 'Estados Unidos', 'México', 'Cuba', 'Egipto'], intruder: 'Egipto',
       why: 'Los otros 4 están en América del Norte o el Caribe.' },
-    { category: 'Países de Asia',
-      others: ['Japón', 'China', 'Corea del Sur', 'Tailandia'], intruder: 'Portugal',
+    // Ejemplo 5
+    { options: ['Japón', 'China', 'Corea del Sur', 'Tailandia', 'Portugal'], intruder: 'Portugal',
       why: 'Los otros 4 están en Asia.' },
-    // El PDF dice "Los otros 4 limitan con Argentina", pero Argentina es uno de esos 4 y no limita
-    // consigo misma. La respuesta (Australia) es la misma; se corrigió solo la explicación.
-    { category: 'Países de América del Sur',
-      others: ['Argentina', 'Brasil', 'Uruguay', 'Paraguay'], intruder: 'Australia',
+    // Ejemplo 6. El PDF dice "Los otros 4 limitan con Argentina", pero Argentina es uno de esos 4 y no
+    // limita consigo misma. La respuesta (Australia) es la misma; se corrigió solo la explicación.
+    { options: ['Argentina', 'Brasil', 'Uruguay', 'Paraguay', 'Australia'], intruder: 'Australia',
       why: 'Los otros 4 están en América del Sur.' },
-    { category: 'Países de Europa',
-      others: ['España', 'Portugal', 'Francia', 'Italia'], intruder: 'Brasil',
+    // Ejemplo 7
+    { options: ['España', 'Portugal', 'Francia', 'Italia', 'Brasil'], intruder: 'Brasil',
       why: 'Los otros 4 están en Europa.' },
-    { category: 'Países de África',
-      others: ['Egipto', 'Marruecos', 'Argelia', 'Túnez'], intruder: 'Noruega',
+    // Ejemplo 8
+    { options: ['Egipto', 'Marruecos', 'Argelia', 'Túnez', 'Noruega'], intruder: 'Noruega',
       why: 'Los otros 4 están en África.' },
-    { category: 'Países de América del Norte o el Caribe',
-      others: ['Estados Unidos', 'Canadá', 'México', 'Cuba'], intruder: 'Brasil',
+    // Ejemplo 9
+    { options: ['Estados Unidos', 'Canadá', 'México', 'Brasil', 'Cuba'], intruder: 'Brasil',
       why: 'Los otros 4 están en América del Norte o el Caribe.' },
-    { category: 'Países de Oceanía',
-      others: ['Australia', 'Nueva Zelanda', 'Fiyi', 'Papúa Nueva Guinea'], intruder: 'Alemania',
+    // Ejemplo 10
+    { options: ['Australia', 'Nueva Zelanda', 'Fiyi', 'Papúa Nueva Guinea', 'Alemania'], intruder: 'Alemania',
       why: 'Los otros 4 son países de Oceanía.' }
   ];
 
   /* ==========================================================
-     UTILIDADES DE TEXTO
+     JUEGO 2 — GEOGRAFÍA EN CADENA
+
+     LIMITES: pares de países que comparten frontera terrestre. Se escriben una
+     sola vez y el juego los usa en los dos sentidos.
+     Nota: NO se incluye España-Marruecos (Ceuta y Melilla), porque en un mapa
+     escolar esos dos países aparecen separados por el estrecho de Gibraltar.
+     ========================================================== */
+  const LIMITES = [
+    // América del Sur
+    ['Argentina', 'Chile'], ['Argentina', 'Bolivia'], ['Argentina', 'Paraguay'],
+    ['Argentina', 'Brasil'], ['Argentina', 'Uruguay'],
+    ['Chile', 'Bolivia'], ['Chile', 'Perú'],
+    ['Bolivia', 'Perú'], ['Bolivia', 'Brasil'], ['Bolivia', 'Paraguay'],
+    ['Perú', 'Brasil'], ['Perú', 'Colombia'], ['Perú', 'Ecuador'],
+    ['Brasil', 'Colombia'], ['Brasil', 'Venezuela'], ['Brasil', 'Guyana'],
+    ['Brasil', 'Uruguay'], ['Brasil', 'Paraguay'],
+    ['Colombia', 'Ecuador'], ['Colombia', 'Venezuela'], ['Colombia', 'Panamá'],
+    ['Venezuela', 'Guyana'],
+    // América del Norte y Central
+    ['Canadá', 'Estados Unidos'], ['Estados Unidos', 'México'],
+    ['México', 'Guatemala'], ['México', 'Belice'],
+    ['Guatemala', 'Belice'], ['Guatemala', 'Honduras'], ['Guatemala', 'El Salvador'],
+    ['Honduras', 'El Salvador'], ['Honduras', 'Nicaragua'],
+    ['Nicaragua', 'Costa Rica'], ['Costa Rica', 'Panamá'],
+    // Europa
+    ['España', 'Portugal'], ['España', 'Francia'],
+    ['Francia', 'Bélgica'], ['Francia', 'Alemania'], ['Francia', 'Suiza'], ['Francia', 'Italia'],
+    ['Alemania', 'Bélgica'], ['Alemania', 'Suiza'], ['Alemania', 'Austria'], ['Alemania', 'Polonia'],
+    ['Italia', 'Suiza'], ['Italia', 'Austria'], ['Suiza', 'Austria'],
+    ['Grecia', 'Turquía'],
+    // África
+    ['Marruecos', 'Argelia'], ['Marruecos', 'Mauritania'],
+    ['Argelia', 'Túnez'], ['Argelia', 'Libia'], ['Argelia', 'Níger'],
+    ['Argelia', 'Malí'], ['Argelia', 'Mauritania'],
+    ['Túnez', 'Libia'],
+    ['Libia', 'Níger'], ['Libia', 'Chad'], ['Libia', 'Sudán'], ['Libia', 'Egipto'],
+    ['Egipto', 'Sudán'], ['Sudán', 'Chad'], ['Sudán', 'Etiopía'],
+    ['Chad', 'Níger'], ['Níger', 'Malí'], ['Malí', 'Mauritania'],
+    // Asia
+    ['India', 'Pakistán'], ['India', 'China'], ['India', 'Nepal'], ['India', 'Bangladés'],
+    ['Pakistán', 'China'], ['Pakistán', 'Afganistán'], ['Pakistán', 'Irán'],
+    ['Irán', 'Afganistán'], ['Irán', 'Irak'], ['Irán', 'Turquía'],
+    ['Afganistán', 'China'], ['China', 'Nepal'],
+    ['Irak', 'Turquía'], ['Irak', 'Arabia Saudita']
+  ];
+
+  // Países que aparecen en el juego y no tienen NINGÚN límite terrestre (son islas).
+  // Se declaran aparte para que se vea que no es un dato que falta.
+  const SIN_LIMITES = ['Cuba'];
+
+  /* Los 10 desafíos de Geografía en Cadena, siempre en este orden.
+     from / to: los dos países de las puntas
+     options:   los 8 países que se pueden tocar (incluye algunos que no sirven)
+     solution:  una solución posible, la que se muestra si la respuesta está mal */
+  const LINKS = [
+    { from: 'Argentina', to: 'Perú',
+      options: ['Bolivia', 'Chile', 'Brasil', 'Uruguay', 'Paraguay', 'Ecuador', 'Colombia', 'México'],
+      solution: ['Argentina', 'Bolivia', 'Perú'] },
+    { from: 'España', to: 'Alemania',
+      options: ['Francia', 'Portugal', 'Italia', 'Suiza', 'Bélgica', 'Austria', 'Polonia', 'Marruecos'],
+      solution: ['España', 'Francia', 'Alemania'] },
+    { from: 'Chile', to: 'Brasil',
+      options: ['Argentina', 'Bolivia', 'Perú', 'Uruguay', 'Paraguay', 'Ecuador', 'Colombia', 'Venezuela'],
+      solution: ['Chile', 'Argentina', 'Brasil'] },
+    { from: 'Egipto', to: 'Argelia',
+      options: ['Libia', 'Sudán', 'Chad', 'Níger', 'Túnez', 'Marruecos', 'Malí', 'Etiopía'],
+      solution: ['Egipto', 'Libia', 'Argelia'] },
+    { from: 'Estados Unidos', to: 'Guatemala',
+      options: ['México', 'Canadá', 'Belice', 'Cuba', 'Honduras', 'El Salvador', 'Nicaragua', 'Panamá'],
+      solution: ['Estados Unidos', 'México', 'Guatemala'] },
+    { from: 'Uruguay', to: 'Perú',
+      options: ['Brasil', 'Argentina', 'Bolivia', 'Chile', 'Paraguay', 'Colombia', 'Ecuador', 'Venezuela'],
+      solution: ['Uruguay', 'Brasil', 'Perú'] },
+    { from: 'Portugal', to: 'Italia',
+      options: ['España', 'Francia', 'Suiza', 'Austria', 'Alemania', 'Marruecos', 'Grecia', 'Bélgica'],
+      solution: ['Portugal', 'España', 'Francia', 'Italia'] },
+    { from: 'Nepal', to: 'Irán',
+      options: ['India', 'Pakistán', 'China', 'Afganistán', 'Bangladés', 'Irak', 'Turquía', 'Arabia Saudita'],
+      solution: ['Nepal', 'India', 'Pakistán', 'Irán'] },
+    { from: 'Marruecos', to: 'Egipto',
+      options: ['Argelia', 'Libia', 'Túnez', 'Níger', 'Malí', 'Chad', 'Sudán', 'Mauritania'],
+      solution: ['Marruecos', 'Argelia', 'Libia', 'Egipto'] },
+    { from: 'Chile', to: 'Venezuela',
+      options: ['Perú', 'Colombia', 'Bolivia', 'Brasil', 'Argentina', 'Ecuador', 'Paraguay', 'Guyana'],
+      solution: ['Chile', 'Perú', 'Colombia', 'Venezuela'] }
+  ];
+
+  /* ==========================================================
+     UTILIDADES
      ========================================================== */
 
-  // minúsculas, sin tildes, sin signos, espacios normalizados
+  function flagEmoji(iso) {
+    return String.fromCodePoint.apply(null, iso.split('').map(function (ch) {
+      return 0x1F1E6 + ch.charCodeAt(0) - 65;
+    }));
+  }
+
+  // minúsculas, sin tildes, sin signos: solo para comparar nombres de jugadores
   function norm(text) {
     return String(text)
       .normalize('NFD')
@@ -142,80 +195,29 @@
       .trim();
   }
 
-  function lettersOnly(text) {
-    return norm(text).replace(/[^a-z]/g, '');
-  }
-
-  function firstLetter(name) {
-    return lettersOnly(name).charAt(0).toUpperCase();
-  }
-
-  function lastLetter(name) {
-    const s = lettersOnly(name);
-    return s.charAt(s.length - 1).toUpperCase();
-  }
-
-  function flagEmoji(iso) {
-    return String.fromCodePoint.apply(null, iso.split('').map(function (ch) {
-      return 0x1F1E6 + ch.charCodeAt(0) - 65;
-    }));
-  }
-
-  function randomInt(n) {
-    if (window.crypto && typeof window.crypto.getRandomValues === 'function') {
-      const a = new Uint32Array(1);
-      window.crypto.getRandomValues(a);
-      return a[0] % n;
-    }
-    return Math.floor(Math.random() * n);
-  }
-
-  function shuffle(list) {
-    const a = list.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = randomInt(i + 1);
-      const t = a[i]; a[i] = a[j]; a[j] = t;
-    }
-    return a;
-  }
-
-  function now() {
-    return (window.performance && typeof window.performance.now === 'function')
-      ? window.performance.now()
-      : Date.now();
-  }
-
   function pluralPaises(n) {
     return n + (n === 1 ? ' país' : ' países');
   }
 
-  /* ---------- Países: índices de búsqueda ---------- */
+  /* ---------- Índice de países y de fronteras ---------- */
 
   const countries = COUNTRY_DATA.map(function (row, id) {
-    const names = [row[0]].concat(row[2] || []);
-    return {
-      id: id,
-      name: row[0],
-      iso: row[1],
-      flag: flagEmoji(row[1]),
-      names: names,
-      starts: new Set(names.map(firstLetter))
-    };
+    return { id: id, name: row[0], iso: row[1], flag: flagEmoji(row[1]) };
   });
 
-  const byNorm = new Map();   // nombre normalizado -> { country, name }
-  const byName = new Map();   // nombre exacto -> country
-  countries.forEach(function (c) {
-    byName.set(c.name, c);
-    c.names.forEach(function (n) { byNorm.set(norm(n), { country: c, name: n }); });
+  const byName = new Map();
+  countries.forEach(function (c) { byName.set(c.name, c); });
+
+  const vecinos = new Map();
+  LIMITES.forEach(function (par) {
+    [[par[0], par[1]], [par[1], par[0]]].forEach(function (p) {
+      if (!vecinos.has(p[0])) { vecinos.set(p[0], new Set()); }
+      vecinos.get(p[0]).add(p[1]);
+    });
   });
 
-  function findCountry(text) {
-    return byNorm.get(norm(text)) || null;
-  }
-
-  function hasAvailable(letter, used) {
-    return countries.some(function (c) { return !used.has(c.id) && c.starts.has(letter); });
+  function limita(a, b) {
+    return vecinos.has(a) && vecinos.get(a).has(b);
   }
 
   /* ==========================================================
@@ -224,7 +226,6 @@
   const state = {
     inf: null,     // partida de País Infiltrado
     chain: null,   // partida de Geografía en Cadena
-    setupCount: 0, // cantidad elegida en la pantalla de configuración
     soundOn: true
   };
 
@@ -266,6 +267,15 @@
     return wrap;
   }
 
+  // Bandera + nombre, como se muestra en cualquier botón o ficha de país
+  function countryLabel(parent, c, flagClass, nameClass) {
+    const flag = makeEl('span', flagClass, c.flag);
+    flag.setAttribute('aria-hidden', 'true');
+    parent.appendChild(flag);
+    parent.appendChild(makeEl('span', nameClass, c.name));
+    return parent;
+  }
+
   const SCREENS = ['screen-home', 'screen-rules', 'screen-inf', 'screen-inf-end',
                    'screen-chain-setup', 'screen-chain', 'screen-chain-end'];
 
@@ -289,7 +299,8 @@
 
   function scrollIntoViewSoft(node) {
     if (node && typeof node.scrollIntoView === 'function') {
-      try { node.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } catch (e) { /* nada */ }
+      // sin animación: si la pantalla se mueve mientras alguien toca, el dedo cae en otro botón
+      try { node.scrollIntoView({ block: 'nearest' }); } catch (e) { /* nada */ }
     }
   }
 
@@ -334,16 +345,14 @@
     if (!ctx) { return; }
     try {
       const t = ctx.currentTime;
-      if (kind === 'ok') {
+      if (kind === 'tap') {
+        tone(ctx, 520, t, 0.07, 'triangle', 0.12);
+      } else if (kind === 'ok') {
         tone(ctx, 660, t, 0.14, 'triangle', 0.22);
         tone(ctx, 880, t + 0.12, 0.2, 'triangle', 0.22);
       } else if (kind === 'bad') {
         tone(ctx, 240, t, 0.18, 'sawtooth', 0.14);
         tone(ctx, 170, t + 0.16, 0.3, 'sawtooth', 0.14);
-      } else if (kind === 'timeout') {
-        tone(ctx, 440, t, 0.18, 'square', 0.12);
-        tone(ctx, 330, t + 0.2, 0.18, 'square', 0.12);
-        tone(ctx, 220, t + 0.4, 0.4, 'square', 0.12);
       } else if (kind === 'win') {
         [523, 659, 784, 1047, 1319].forEach(function (f, i) {
           tone(ctx, f, t + i * 0.13, 0.28, 'triangle', 0.22);
@@ -361,36 +370,29 @@
   /* ==========================================================
      NAVEGACIÓN
      ========================================================== */
-  function stopChainTimers(g) {
-    if (!g) { return; }
-    g.token += 1; // invalida cualquier callback pendiente
-    if (g.timeoutId !== null) { clearTimeout(g.timeoutId); g.timeoutId = null; }
-    if (g.tickId !== null) { clearInterval(g.tickId); g.tickId = null; }
-    if (g.pauseId !== null) { clearTimeout(g.pauseId); g.pauseId = null; }
-  }
-
   function wipeAllGames() {
-    stopChainTimers(state.chain);
     state.chain = null;
     state.inf = null;
-    state.setupCount = 0;
 
     // vaciar todo lo que se haya dibujado
     clear($('inf-options'));
-    clear($('players-list'));
-    clear($('chain-list'));
+    clear($('chain-build'));
+    clear($('chain-options'));
     clear($('names-list'));
     $('inf-confirm').hidden = true;
     $('inf-result').hidden = true;
-    $('feedback').hidden = true;
-    $('answer-input').value = '';
-    $('hint').hidden = true;
+    $('chain-result').hidden = true;
+    $('chain-result-solution').hidden = true;
+    $('chain-result-why').hidden = true;
     $('names-error').hidden = true;
-    $('names-form').hidden = true;
-    $('winner-name').textContent = '';
-    $('winner-chain').textContent = '';
-    Array.prototype.forEach.call(document.querySelectorAll('.count-btn'), function (b) {
-      b.setAttribute('aria-pressed', 'false');
+    // no debe quedar ni un nombre ni un país de la partida anterior en la página
+    ['chain-hint', 'turn-name', 'link-from', 'link-from-flag', 'link-to', 'link-to-flag',
+     'chain-result-chain', 'chain-result-why', 'chain-result-solution-text',
+     'chain-result-title-text', 'winner-name', 'winner-scores', 'winner-sub'
+    ].forEach(function (id) { $(id).textContent = ''; });
+    ['score-1', 'score-2'].forEach(function (id) {
+      clear($(id));
+      $(id).classList.remove('is-turn');
     });
   }
 
@@ -406,7 +408,7 @@
   function startInfiltrado() {
     wipeAllGames();
     state.inf = {
-      queue: shuffle(CHALLENGES),   // orden aleatorio, cada desafío una sola vez
+      queue: CHALLENGES.slice(),    // siempre el mismo orden: ejemplo 1, 2, ... 10
       pos: 0,
       score: 0,
       current: null
@@ -420,7 +422,7 @@
     const g = state.inf;
     const ch = g.queue[g.pos];
     const intruder = byName.get(ch.intruder);
-    const options = shuffle(ch.others.map(function (n) { return byName.get(n); }).concat([intruder]));
+    const options = ch.options.map(function (n) { return byName.get(n); });   // mismo orden que la tarjeta
     g.current = { challenge: ch, intruder: intruder, options: options, selected: null, locked: false };
     renderChallenge();
   }
@@ -438,10 +440,7 @@
       const b = makeEl('button', 'opt');
       b.type = 'button';
       b.setAttribute('aria-pressed', 'false');
-      const flag = makeEl('span', 'opt-flag', c.flag);
-      flag.setAttribute('aria-hidden', 'true');
-      b.appendChild(flag);
-      b.appendChild(makeEl('span', 'opt-name', c.name));
+      countryLabel(b, c, 'opt-flag', 'opt-name');
       b.addEventListener('click', function () { selectOption(i); });
       box.appendChild(b);
     });
@@ -497,14 +496,14 @@
     result.classList.toggle('result--bad', !correct);
     $('inf-result-use').setAttribute('href', correct ? '#i-check' : '#i-x');
     $('inf-result-title-text').textContent = correct ? '¡CORRECTO!' : 'INCORRECTO';
-    $('inf-result-answer').textContent = 'El país infiltrado era ' + cur.intruder.name + '\u00a0' + cur.intruder.flag;
+    $('inf-result-answer').textContent = 'El país infiltrado era ' + cur.intruder.name + ' ' + cur.intruder.flag;
     const pick = $('inf-result-pick');
     if (correct) {
       pick.hidden = true;
       pick.textContent = '';
     } else {
       pick.hidden = false;
-      pick.textContent = 'Elegiste ' + chosen.name + '\u00a0' + chosen.flag + '.';
+      pick.textContent = 'Elegiste ' + chosen.name + ' ' + chosen.flag + '.';
     }
     $('inf-result-why').textContent = cur.challenge.why;
     $('inf-next').textContent = (g.pos + 1 >= g.queue.length) ? 'VER RESULTADO' : 'SIGUIENTE DESAFÍO';
@@ -532,366 +531,295 @@
 
   /* ==========================================================
      JUEGO 2 — GEOGRAFÍA EN CADENA
+     Hay que unir dos países pasando por países que se toquen entre sí.
+     Sin reloj: cada jugador se toma el tiempo que quiera.
      ========================================================== */
 
   /* ---------- Configuración ---------- */
 
   function openChainSetup() {
     wipeAllGames();
+    const box = $('names-list');
+    clear(box);
+    for (let i = 1; i <= CHAIN_PLAYERS; i++) {
+      const row = makeEl('div', 'name-row');
+      const label = makeEl('label', '', 'Jugador ' + i + ':');
+      label.setAttribute('for', 'name-' + i);
+      const input = makeEl('input');
+      input.type = 'text';
+      input.id = 'name-' + i;
+      input.maxLength = MAX_NAME_LENGTH;
+      input.placeholder = 'Nombre';
+      input.autocomplete = 'off';
+      input.setAttribute('autocorrect', 'off');
+      input.setAttribute('autocapitalize', 'words');
+      input.setAttribute('spellcheck', 'false');
+      row.appendChild(label);
+      row.appendChild(input);
+      box.appendChild(row);
+    }
     showScreen('screen-chain-setup');
     focusHeading('chain-setup-title');
   }
 
-  function selectCount(n) {
-    state.setupCount = n;
-    Array.prototype.forEach.call(document.querySelectorAll('.count-btn'), function (b) {
-      b.setAttribute('aria-pressed', Number(b.getAttribute('data-count')) === n ? 'true' : 'false');
-    });
-
-    const list = $('names-list');
-    const previous = Array.prototype.map.call(list.querySelectorAll('input'), function (i) { return i.value; });
-    clear(list);
-    for (let k = 1; k <= n; k++) {
-      const row = makeEl('div', 'name-row');
-      const label = makeEl('label', '', 'Jugador ' + k + ':');
-      const input = makeEl('input');
-      input.type = 'text';
-      input.id = 'name-' + k;
-      input.maxLength = MAX_NAME_LENGTH;
-      input.placeholder = 'Nombre';
-      input.autocomplete = 'off';
-      input.setAttribute('autocapitalize', 'words');
-      input.setAttribute('autocorrect', 'off');
-      input.spellcheck = false;
-      input.setAttribute('enterkeyhint', k === n ? 'done' : 'next');
-      input.value = previous[k - 1] || '';
-      label.setAttribute('for', input.id);
-      row.appendChild(label);
-      row.appendChild(input);
-      list.appendChild(row);
+  function onStartSubmit(ev) {
+    ev.preventDefault();
+    const names = [];
+    for (let i = 1; i <= CHAIN_PLAYERS; i++) {
+      const v = $('name-' + i).value.trim().slice(0, MAX_NAME_LENGTH);
+      names.push(v || ('Jugador ' + i));
     }
-    $('names-error').hidden = true;
-    $('names-form').hidden = false;
-    scrollIntoViewSoft($('names-form'));
-  }
-
-  function collectNames() {
-    return Array.prototype.map.call($('names-list').querySelectorAll('input'), function (input, i) {
-      const clean = input.value.replace(/\s+/g, ' ').trim();
-      return clean || ('Jugador ' + (i + 1));
-    });
-  }
-
-  function onStartSubmit(e) {
-    e.preventDefault();
-    const n = state.setupCount;
-    if (n < MIN_PLAYERS || n > MAX_PLAYERS) { return; }
-    const names = collectNames();
-    const seen = new Set();
-    for (let i = 0; i < names.length; i++) {
-      const key = norm(names[i]) || names[i].toLowerCase();
-      if (seen.has(key)) {
-        const err = $('names-error');
-        err.textContent = 'Hay nombres repetidos. Cambiá alguno para continuar.';
-        err.hidden = false;
-        return;
-      }
-      seen.add(key);
+    const err = $('names-error');
+    if (norm(names[0]) === norm(names[1])) {
+      err.textContent = 'Los dos jugadores tienen el mismo nombre. Cambiá uno.';
+      err.hidden = false;
+      return;
     }
-    startChainGame(names);
+    err.hidden = true;
+    startChain(names);
   }
 
-  /* ---------- Partida ---------- */
-
-  function startChainGame(names) {
-    stopChainTimers(state.chain);
+  function startChain(names) {
     state.chain = {
-      players: names.map(function (n) { return { name: n, alive: true }; }),
-      turn: 0,
-      chain: [],            // [{ name, flag }]
-      used: new Set(),      // ids de países ya dichos
-      letter: null,         // letra pedida (null = cualquier país)
-      freeReason: null,     // 'first' | 'exhausted'
-      exhaustedLetter: null,
-      phase: 'turn',        // 'turn' | 'between' | 'over'
-      deadline: 0,
-      token: 0,
-      timeoutId: null,
-      tickId: null,
-      pauseId: null
+      players: names.map(function (n) { return { name: n, score: 0 }; }),
+      queue: LINKS.slice(),   // siempre el mismo orden: desafío 1, 2, ... 10
+      pos: 0,
+      middle: [],             // países elegidos para el medio de la cadena
+      locked: false
     };
-    $('timer-ring').style.setProperty('--turn', TURN_MS + 'ms');
     showScreen('screen-chain');
-    beginTurn();
+    renderChainAll();
+    focusHeading('chain-title');
   }
 
-  function nextAlive(g, from) {
-    const n = g.players.length;
-    for (let i = 1; i <= n; i++) {
-      const idx = (from + i) % n;
-      if (g.players[idx].alive) { return idx; }
-    }
-    return from;
+  /* ---------- Dibujo ---------- */
+
+  function currentLink() {
+    const g = state.chain;
+    return g ? g.queue[g.pos] : null;
   }
 
-  function aliveCount(g) {
-    return g.players.filter(function (p) { return p.alive; }).length;
+  function currentPlayer() {
+    const g = state.chain;
+    return g ? g.players[g.pos % g.players.length] : null;
   }
 
-  function computeLetter(g) {
-    g.exhaustedLetter = null;
-    if (g.chain.length === 0) {
-      g.freeReason = 'first';
-      return null;
-    }
-    const letter = lastLetter(g.chain[g.chain.length - 1].name);
-    if (hasAvailable(letter, g.used)) {
-      g.freeReason = null;
-      return letter;
-    }
-    // ya no queda ningún país con esa letra: el turno es libre
-    g.freeReason = 'exhausted';
-    g.exhaustedLetter = letter;
-    return null;
-  }
+  function renderChainAll() {
+    const g = state.chain;
+    const link = currentLink();
 
-  function renderPlayers(g) {
-    const ul = $('players-list');
-    clear(ul);
+    $('chain-progress').textContent = 'Desafío ' + (g.pos + 1) + ' de ' + g.queue.length;
     g.players.forEach(function (p, i) {
-      const li = makeEl('li', p.alive ? '' : 'is-out');
-      li.appendChild(icon(p.alive ? 'alive' : 'out', 'p-status'));
-      li.appendChild(makeEl('span', 'p-name', p.name));
-      if (!p.alive) {
-        li.appendChild(document.createTextNode(' — Eliminado'));
-      } else if (g.phase === 'turn' && i === g.turn) {
-        li.classList.add('is-turn');
-        li.setAttribute('aria-current', 'true');
-        li.appendChild(makeEl('span', 'p-turn', 'Turno'));
-      }
-      ul.appendChild(li);
+      const chip = $('score-' + (i + 1));
+      clear(chip);
+      chip.appendChild(makeEl('span', 'score-name', p.name));
+      chip.appendChild(makeEl('span', 'score-num', String(p.score)));
+      chip.classList.toggle('is-turn', i === g.pos % g.players.length);
     });
+
+    $('turn-name').textContent = currentPlayer().name;
+
+    const from = byName.get(link.from);
+    const to = byName.get(link.to);
+    $('link-from-flag').textContent = from.flag;
+    $('link-from').textContent = from.name;
+    $('link-to-flag').textContent = to.flag;
+    $('link-to').textContent = to.name;
+
+    $('chain-result').hidden = true;
+    renderBuild();
+    renderChainOptions();
+    try { window.scrollTo(0, 0); } catch (e) { /* nada */ }
   }
 
-  function renderChain(g) {
-    const box = $('chain-list');
+  function renderBuild() {
+    const g = state.chain;
+    const link = currentLink();
+    const box = $('chain-build');
     clear(box);
-    $('chain-count').textContent = pluralPaises(g.chain.length);
-    if (g.chain.length === 0) {
-      box.appendChild(makeEl('span', 'chain-empty', 'Todavía no hay países. ¡Que arranque la cadena!'));
-      return;
-    }
-    g.chain.forEach(function (item, i) {
-      if (i > 0) {
-        box.appendChild(document.createTextNode(' '));
-        box.appendChild(icon('arrow', 'chain-arrow'));
-        box.appendChild(document.createTextNode(' '));
+
+    const step = function (node, first) {
+      if (first) { box.appendChild(node); return; }
+      const wrap = makeEl('span', 'build-step');
+      wrap.appendChild(icon('arrow', 'build-arrow'));
+      wrap.appendChild(node);
+      box.appendChild(wrap);
+    };
+
+    const fixed = function (c) {
+      const el = makeEl('span', 'piece piece--fixed');
+      countryLabel(el, c, 'piece-flag', 'piece-name');
+      return el;
+    };
+
+    step(fixed(byName.get(link.from)), true);
+    g.middle.forEach(function (name, i) {
+      const c = byName.get(name);
+      if (g.locked) {
+        const el = makeEl('span', 'piece');
+        countryLabel(el, c, 'piece-flag', 'piece-name');
+        step(el);
+      } else {
+        const b = makeEl('button', 'piece piece--pick');
+        b.type = 'button';
+        b.setAttribute('aria-label', 'Sacar ' + c.name + ' de la cadena');
+        countryLabel(b, c, 'piece-flag', 'piece-name');
+        b.appendChild(icon('x', 'piece-x'));
+        b.addEventListener('click', function () { removeFromChain(i); });
+        step(b);
       }
-      box.appendChild(makeEl('span', 'chain-item' + (i === g.chain.length - 1 ? ' is-last' : ''),
-        item.flag + ' ' + item.name));
     });
-    box.scrollTop = box.scrollHeight;
-  }
-
-  function renderTurn(g) {
-    $('turn-name').textContent = g.players[g.turn].name;
-    const letterEl = $('turn-letter');
-    const prompt = $('turn-prompt');
-    if (g.letter) {
-      prompt.textContent = 'Decí un país que empiece con:';
-      letterEl.textContent = g.letter;
-      letterEl.classList.remove('is-free');
-    } else {
-      prompt.textContent = g.freeReason === 'exhausted'
-        ? 'Ya no quedan países con la ' + g.exhaustedLetter + '. ¡Decí cualquier país!'
-        : 'Decí cualquier país para empezar la cadena:';
-      letterEl.textContent = '?';
-      letterEl.classList.add('is-free');
+    if (!g.locked && g.middle.length < MAX_MIDDLE) {
+      const slot = makeEl('span', 'piece piece--slot');
+      slot.appendChild(icon('plus'));
+      step(slot);
     }
-    renderPlayers(g);
-    renderChain(g);
+    step(fixed(byName.get(link.to)));
+
+    const quedan = MAX_MIDDLE - g.middle.length;
+    if (g.locked) {
+      $('chain-hint').textContent = '';
+    } else if (g.middle.length === 0) {
+      $('chain-hint').textContent = 'Elegí abajo los países del medio. Podés poner hasta ' + MAX_MIDDLE + '.';
+    } else if (quedan > 0) {
+      $('chain-hint').textContent = 'Podés agregar ' + quedan + ' más. Tocá un país de tu cadena para sacarlo.';
+    } else {
+      $('chain-hint').textContent = 'Llegaste al máximo de ' + MAX_MIDDLE + '. Tocá un país de tu cadena para sacarlo.';
+    }
   }
 
-  function showHint(msg) {
-    const h = $('hint');
-    h.textContent = msg;
-    h.hidden = false;
-  }
-
-  function hideHint() {
-    const h = $('hint');
-    h.hidden = true;
-    h.textContent = '';
-  }
-
-  function restartRing() {
-    const ring = $('timer-ring');
-    ring.classList.remove('idle', 'danger', 'run');
-    void ring.getBoundingClientRect();
-    ring.classList.add('run');
-  }
-
-  function updateTimer(g) {
-    if (g.phase !== 'turn') { return; }
-    const remaining = Math.max(0, g.deadline - now());
-    const secs = Math.ceil(remaining / 1000);
-    const num = $('timer-num');
-    const text = String(secs);
-    if (num.textContent !== text) { num.textContent = text; }
-    $('timer-ring').classList.toggle('danger', remaining <= 2000);
-  }
-
-  function beginTurn() {
+  function renderChainOptions() {
     const g = state.chain;
-    if (!g) { return; }
-    stopChainTimers(g);
-    g.phase = 'turn';
-    g.letter = computeLetter(g);
-
-    $('feedback').hidden = true;
-    hideHint();
-    const input = $('answer-input');
-    input.value = '';
-    renderTurn(g);
-
-    g.deadline = now() + TURN_MS;
-    $('timer-num').textContent = String(Math.ceil(TURN_MS / 1000));
-    restartRing();
-
-    const token = g.token;
-    g.timeoutId = setTimeout(function () {
-      if (state.chain === g && g.token === token && g.phase === 'turn') { onTimeout(g); }
-    }, TURN_MS);
-    g.tickId = setInterval(function () {
-      if (state.chain === g && g.token === token) { updateTimer(g); }
-    }, 100);
-
-    // El campo queda siempre enfocado: así el teclado del celular no se cierra entre turnos.
-    input.focus();
+    const link = currentLink();
+    const box = $('chain-options');
+    clear(box);
+    link.options.forEach(function (name) {
+      const c = byName.get(name);
+      const b = makeEl('button', 'pick');
+      b.type = 'button';
+      const used = g.middle.indexOf(name) !== -1;
+      b.disabled = g.locked || used || g.middle.length >= MAX_MIDDLE;
+      if (used) { b.classList.add('is-used'); }
+      countryLabel(b, c, 'pick-flag', 'pick-name');
+      b.addEventListener('click', function () { addToChain(name); });
+      box.appendChild(b);
+    });
+    $('chain-confirm-btn').disabled = g.locked;
   }
 
-  // detail puede ser texto o un nodo (por ejemplo, ícono + texto)
-  function showFeedback(bad, iconName, title, detail) {
-    const fb = $('feedback');
-    fb.classList.toggle('is-bad', bad);
-    $('fb-icon-use').setAttribute('href', '#i-' + iconName);
-    $('fb-title').textContent = title;
-    const d = $('fb-detail');
-    clear(d);
-    if (typeof detail === 'string') { d.textContent = detail; } else { d.appendChild(detail); }
-    fb.hidden = false;
-  }
+  /* ---------- Jugar ---------- */
 
-  function endTurnTimers(g) {
-    // frena el reloj del turno pero deja vivo el estado de la partida
-    if (g.timeoutId !== null) { clearTimeout(g.timeoutId); g.timeoutId = null; }
-    if (g.tickId !== null) { clearInterval(g.tickId); g.tickId = null; }
-    g.token += 1;
-    const ring = $('timer-ring');
-    ring.classList.remove('run', 'danger');
-    ring.classList.add('idle');
-  }
-
-  function schedule(g, ms, fn) {
-    const token = g.token;
-    g.pauseId = setTimeout(function () {
-      g.pauseId = null;
-      if (state.chain === g && g.token === token) { fn(); }
-    }, ms);
-  }
-
-  function onTimeout(g) {
-    eliminateCurrent(g, 'timeout', '');
-  }
-
-  function eliminateCurrent(g, kind, message) {
-    endTurnTimers(g);
-    g.phase = 'between';
-    const player = g.players[g.turn];
-    player.alive = false;
-    playSound(kind === 'timeout' ? 'timeout' : 'bad');
-
-    if (kind === 'timeout') {
-      showFeedback(true, 'clock', '¡TIEMPO!', iconText('x', 'Jugador eliminado: ' + player.name));
-    } else {
-      showFeedback(true, 'x', message, iconText('x', 'Jugador eliminado: ' + player.name));
-    }
-    renderPlayers(g);
-
-    if (aliveCount(g) <= 1) {
-      g.phase = 'over';
-      schedule(g, PAUSE_OUT_MS, function () { showWinner(g); });
-    } else {
-      g.turn = nextAlive(g, g.turn);
-      schedule(g, PAUSE_OUT_MS, beginTurn);
-    }
-  }
-
-  function acceptAnswer(g, hit) {
-    endTurnTimers(g);
-    g.phase = 'between';
-    g.chain.push({ name: hit.name, flag: hit.country.flag });
-    g.used.add(hit.country.id);
-    playSound('ok');
-
-    const previous = g.turn;
-    g.turn = nextAlive(g, previous);
-    const nextName = g.players[g.turn].name;
-    showFeedback(false, 'check', '¡CORRECTO!', hit.country.flag + ' ' + hit.name + '\nSigue: ' + nextName);
-    renderPlayers(g);
-    renderChain(g);
-    schedule(g, PAUSE_OK_MS, beginTurn);
-  }
-
-  function validateAnswer(g, raw) {
-    const hit = findCountry(raw);
-    if (!hit) { return { ok: false, message: 'Ese lugar no es un país.' }; }
-    if (g.letter && firstLetter(hit.name) !== g.letter) {
-      return { ok: false, message: 'La respuesta debe comenzar con ' + g.letter + '.' };
-    }
-    if (g.used.has(hit.country.id)) { return { ok: false, message: 'Ese país ya fue utilizado.' }; }
-    return { ok: true, hit: hit };
-  }
-
-  function onAnswerSubmit(e) {
-    e.preventDefault();
+  function addToChain(name) {
     const g = state.chain;
-    if (!g || g.phase !== 'turn') { return; }
+    if (!g || g.locked) { return; }
+    if (g.middle.length >= MAX_MIDDLE) { return; }
+    if (g.middle.indexOf(name) !== -1) { return; }
+    g.middle.push(name);
+    playSound('tap');
+    renderBuild();
+    renderChainOptions();
+  }
 
-    // Pasados los 5 segundos ya no se acepta nada, aunque el reloj aún no haya saltado.
-    if (now() >= g.deadline) {
-      onTimeout(g);
-      return;
+  function removeFromChain(i) {
+    const g = state.chain;
+    if (!g || g.locked) { return; }
+    g.middle.splice(i, 1);
+    renderBuild();
+    renderChainOptions();
+  }
+
+  // Revisa la cadena completa y devuelve por qué falla, si falla
+  function checkChain(full) {
+    if (full.length > MAX_CHAIN) {
+      return { ok: false, why: 'La cadena no puede tener más de ' + MAX_CHAIN + ' países.' };
     }
-
-    const input = $('answer-input');
-    const raw = input.value;
-    if (!raw.trim()) {
-      showHint('Escribí un país antes de confirmar.');
-      input.focus();
-      return;
+    for (let i = 0; i < full.length - 1; i++) {
+      if (!limita(full[i], full[i + 1])) {
+        return { ok: false, why: full[i] + ' no limita con ' + full[i + 1] + '.' };
+      }
     }
+    return { ok: true, why: '' };
+  }
 
-    const res = validateAnswer(g, raw);
+  function chainText(names) {
+    return names.join(' → ');
+  }
+
+  function confirmChain() {
+    const g = state.chain;
+    if (!g || g.locked) { return; }
+    const link = currentLink();
+    const full = [link.from].concat(g.middle, [link.to]);
+    const res = checkChain(full);
+    g.locked = true;
+    if (res.ok) { currentPlayer().score += 1; }
+
+    const result = $('chain-result');
+    result.classList.toggle('result--ok', res.ok);
+    result.classList.toggle('result--bad', !res.ok);
+    $('chain-result-use').setAttribute('href', res.ok ? '#i-check' : '#i-x');
+    $('chain-result-title-text').textContent = res.ok ? '¡CORRECTO!' : 'INCORRECTO';
+    $('chain-result-chain').textContent = chainText(full) + '  (' + pluralPaises(full.length) + ')';
+
+    const why = $('chain-result-why');
+    const sol = $('chain-result-solution');
     if (res.ok) {
-      hideHint();
-      acceptAnswer(g, res.hit);
-    } else if (ELIMINATE_ON_INVALID) {
-      eliminateCurrent(g, 'invalid', res.message);
+      why.hidden = true;
+      why.textContent = '';
+      sol.hidden = true;
     } else {
-      showHint(res.message);
-      playSound('bad');
-      input.select();
+      why.hidden = false;
+      why.textContent = res.why;
+      sol.hidden = false;
+      $('chain-result-solution-text').textContent = chainText(link.solution);
+    }
+    $('chain-next').textContent = (g.pos + 1 >= g.queue.length) ? 'VER RESULTADO' : 'SIGUIENTE DESAFÍO';
+
+    renderBuild();
+    renderChainOptions();
+    renderScores();
+    result.hidden = false;
+    playSound(res.ok ? 'ok' : 'bad');
+    scrollIntoViewSoft(result);
+  }
+
+  function renderScores() {
+    const g = state.chain;
+    g.players.forEach(function (p, i) {
+      const chip = $('score-' + (i + 1));
+      clear(chip);
+      chip.appendChild(makeEl('span', 'score-name', p.name));
+      chip.appendChild(makeEl('span', 'score-num', String(p.score)));
+    });
+  }
+
+  function nextLink() {
+    const g = state.chain;
+    if (!g || !g.locked) { return; }
+    g.pos += 1;
+    g.middle = [];
+    g.locked = false;
+    if (g.pos >= g.queue.length) {
+      finishChain();
+    } else {
+      renderChainAll();
     }
   }
 
-  function showWinner(g) {
-    const winner = g.players.filter(function (p) { return p.alive; })[0] || g.players[g.turn];
-    stopChainTimers(g);
-    $('winner-name').textContent = winner.name;
-    $('winner-chain').textContent = 'Cadena final: ' + pluralPaises(g.chain.length) + '.';
-    $('feedback').hidden = true;
-    $('answer-input').blur();
+  function finishChain() {
+    const g = state.chain;
+    const a = g.players[0];
+    const b = g.players[1];
+    const tie = a.score === b.score;
+    const winner = a.score > b.score ? a : b;
+
+    $('winner-title').textContent = tie ? '¡EMPATE!' : '¡TENEMOS GANADOR!';
+    $('winner-name').textContent = tie ? '' : winner.name;
+    $('winner-row').hidden = tie;
+    $('winner-scores').textContent = a.name + ' ' + a.score + '  —  ' + b.name + ' ' + b.score;
+    $('winner-sub').textContent = tie
+      ? 'Los dos resolvieron la misma cantidad.'
+      : '¡Ganaste Geografía en Cadena!';
     showScreen('screen-chain-end');
     focusHeading('winner-title');
     playSound('win');
@@ -917,11 +845,9 @@
     $('inf-again').addEventListener('click', startInfiltrado);
     $('inf-end-home').addEventListener('click', goHome);
 
-    Array.prototype.forEach.call(document.querySelectorAll('.count-btn'), function (b) {
-      b.addEventListener('click', function () { selectCount(Number(b.getAttribute('data-count'))); });
-    });
     $('names-form').addEventListener('submit', onStartSubmit);
-    $('answer-form').addEventListener('submit', onAnswerSubmit);
+    $('chain-confirm-btn').addEventListener('click', confirmChain);
+    $('chain-next').addEventListener('click', nextLink);
     $('chain-again').addEventListener('click', openChainSetup);
     $('chain-end-home').addEventListener('click', goHome);
 
@@ -931,12 +857,12 @@
       if (state.soundOn) { playSound('ok'); }
     });
 
-    // Los navegadores de celular exigen un toque del usuario para activar el audio.
+    // el navegador necesita un toque del usuario para dejar sonar
     document.addEventListener('click', function () { getAudio(); }, true);
 
-    // Si el navegador restaura la página desde su memoria (botón "atrás"), se vuelve a empezar de cero.
+    // si el navegador restaura la pestaña desde su memoria, volvemos a la portada
     window.addEventListener('pageshow', function (ev) {
-      if (ev.persisted) { goHome(); }
+      if (ev && ev.persisted) { goHome(); }
     });
 
     showScreen('screen-home');

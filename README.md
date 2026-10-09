@@ -3,8 +3,10 @@
 Dos juegos de geografía para celular, en una página estática (HTML + CSS + JavaScript puros).
 Cuesta **$0**, no usa servidor, base de datos, cuentas ni almacenamiento, y **cada persona que entra juega su propia partida**.
 
-- **País Infiltrado**: 10 desafíos, los 10 ejemplos del PDF con sus respuestas. Cuatro países tienen algo en común, uno es el infiltrado.
-- **Geografía en Cadena**: de 2 a 8 jugadores, 5 segundos por turno, 195 países válidos.
+- **País Infiltrado**: 1 jugador, 10 desafíos. Son los 10 ejemplos del PDF con sus respuestas: cuatro países tienen algo en común y uno es el infiltrado.
+- **Geografía en Cadena**: 2 jugadores por turnos, 10 desafíos. Hay que unir dos países pasando por países que compartan frontera, sin pasar de 5 países. **No hay reloj.**
+
+Los dos juegos tienen **siempre los mismos 10 desafíos, en el mismo orden**. No hay nada al azar: todos los celulares ven exactamente lo mismo.
 
 Diseño: colores **azules y beige**, íconos propios en SVG (nada de emojis) y banderas de cada país como único elemento "emoji".
 
@@ -14,10 +16,10 @@ Diseño: colores **azules y beige**, íconos propios en SVG (nada de emojis) y b
 geografia-en-juego/
 ├── index.html        la página
 ├── style.css         el diseño (los colores azul y beige están al principio, en :root)
-├── script.js         los dos juegos, la lista de países y los 10 desafíos
+├── script.js         los dos juegos, los países, las fronteras y los desafíos
 ├── assets/
 │   └── favicon.svg   ícono de la pestaña
-├── DESAFIOS.md       los 10 desafíos, con respuesta y explicación
+├── DESAFIOS.md       los 10 desafíos de cada juego, con sus respuestas
 ├── README.md         este archivo
 └── .nojekyll         (opcional) le dice a GitHub Pages que no procese los archivos
 ```
@@ -76,7 +78,7 @@ Usá un generador de **QR estático** (sin registro y sin vencimiento) y pegá l
 ## 5. Cómo funcionan las sesiones independientes
 
 - **No hay servidor que guarde partidas.** La página es solo tres archivos estáticos que cada celular descarga. Un celular no tiene ningún camino para hablar con otro.
-- **El estado vive únicamente en la memoria de la pestaña.** Jugadores, nombres, países usados, eliminados, puntaje y desafíos vistos están en una variable de JavaScript dentro de `script.js`. Cuando se cierra o recarga la pestaña, esa memoria desaparece.
+- **El estado vive únicamente en la memoria de la pestaña.** Los nombres de los jugadores, la cadena que están armando, los puntajes y en qué desafío van están en una variable de JavaScript dentro de `script.js`. Cuando se cierra o recarga la pestaña, esa memoria desaparece.
 - **No se usa ningún almacenamiento.** El código no usa `localStorage`, `sessionStorage`, cookies, IndexedDB ni service workers, así que no queda nada para que otra persona lo herede, ni siquiera en el mismo celular.
 - **No se envía nada a ningún lado.** La página declara una política de seguridad (`connect-src 'none'`) que hace que el navegador bloquee `fetch`, `XMLHttpRequest`, `WebSocket` y `sendBeacon`. Durante el juego solo se descargan los archivos de la página al abrirla.
 - **El mismo QR no comparte nada:** abrir la misma URL en otro celular, en otra pestaña o mil veces más descarga una copia nueva que arranca en la portada.
@@ -88,19 +90,18 @@ Un detalle honesto: como la página es estática, las respuestas de los desafío
 
 | Ajuste | Valor actual | Para qué sirve |
 |---|---|---|
-| `TURN_MS` | `5000` | Tiempo por turno en milisegundos. |
-| `PAUSE_OK_MS` | `1500` | Cuánto dura el cartel "¡CORRECTO!" antes del turno siguiente. |
-| `PAUSE_OUT_MS` | `2600` | Cuánto dura el cartel de eliminación. |
-| `ELIMINATE_ON_INVALID` | `true` | `true`: un país inexistente, repetido o con otra letra elimina al instante. `false`: muestra el error y deja corregir hasta que se acabe el tiempo (útil si se escribe en celular y los errores de tipeo son frecuentes). |
+| `MAX_CHAIN` | `5` | Cuántos países puede tener una cadena, contando los dos de las puntas. Con 5, en el medio entran 3. |
+| `CHAIN_PLAYERS` | `2` | Cuántos jugadores juegan Geografía en Cadena. |
+| `MAX_NAME_LENGTH` | `14` | Largo máximo de los nombres. |
 
-Los desafíos y cómo editarlos están en `DESAFIOS.md`.
+Los desafíos de los dos juegos y cómo editarlos están en `DESAFIOS.md`.
 
 ## 7. Cosas para tener en cuenta
 
-- **Lista de países:** los 193 miembros de la ONU más Palestina y el Vaticano (195). Acepta variantes comunes (Holanda, Myanmar, Rusia, Bangladesh, Kenya…). No acepta territorios ni países en disputa que no están en esa lista (Taiwán, Kosovo, Inglaterra, Groenlandia…).
-- **Cadena sin salida:** si ya se usaron todos los países que empiezan con la letra pedida, el siguiente jugador puede decir cualquier país. Está indicado en pantalla.
-- **Banderas:** son los únicos emojis de la página; todo lo demás son íconos SVG. En iPhone, Android y Mac se ven como banderas. En Windows (Chrome/Edge) las banderas aparecen como dos letras (por ejemplo "AR"); el juego funciona igual.
-- **Ejemplo 6 del PDF:** la explicación original decía "Los otros 4 limitan con Argentina", pero Argentina es uno de los 4 países que se muestran. Se cambió solo esa frase a "Los otros 4 están en América del Sur." (la respuesta, Australia, no cambia). Si preferís el texto original, está en `script.js`, en el sexto desafío.
-- **Fin de la partida de País Infiltrado:** como son 10 desafíos, la partida termina al completar los 10 y muestra el puntaje. "Jugar de nuevo" los vuelve a mezclar.
-- **Correcto e incorrecto:** se distinguen por el ícono (tilde / cruz), por el texto y por el color (azul / beige oscuro), no por rojo y verde.
-- **Teclado del celular:** el campo de texto está configurado para no corregir ni autocompletar. Algunos teclados de Android igual muestran sugerencias de palabras; no hay forma de impedirlo desde una página web.
+- **Siempre lo mismo:** los 10 desafíos de cada juego salen siempre en el mismo orden y, en País Infiltrado, con los 5 países en el mismo orden que en la tarjeta del PDF. "Jugar de nuevo" empieza otra vez desde el desafío 1.
+- **El infiltrado casi siempre va último.** Así vienen las tarjetas del PDF: en 9 de las 10 el infiltrado es el quinto de la lista. Quien juegue dos veces, o mire el celular de al lado, puede adivinar por la posición. Si querés evitarlo, cambiá el orden de `options` en `script.js` (la respuesta no cambia: es `intruder`).
+- **Fronteras:** son las de la lista `LIMITES` en `script.js`. No se cuenta España-Marruecos (Ceuta y Melilla), porque en un mapa escolar aparecen separados por el estrecho de Gibraltar. Cuba está declarada como isla, sin fronteras.
+- **Vale cualquier cadena correcta**, no solo la que trae el juego. Varios desafíos tienen más de 20 soluciones distintas.
+- **Ejemplo 6 del PDF:** la explicación original decía "Los otros 4 limitan con Argentina", pero Argentina es uno de los 4 países que se muestran. Se cambió solo esa frase por "Los otros 4 están en América del Sur." La respuesta (Australia) no cambia.
+- **Correcto e incorrecto** se distinguen por el ícono (tilde / cruz), por el texto y por el color (azul / beige oscuro), no por rojo y verde.
+- **Banderas:** son los únicos emojis de la página; todo lo demás son íconos SVG. En iPhone, Android y Mac se ven como banderas. En Windows (Chrome/Edge) aparecen como dos letras (por ejemplo "AR"); el juego funciona igual.
